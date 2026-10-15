@@ -10,7 +10,6 @@
 
 - **Submission Report (HTML):** [`report_mini_ps.html`](report_mini_ps.html)- Final Report .html format
 - **Compiled Submission Report (PDF):** [`sarvam_mini_ps.pdf`](sarvam_mini_ps.pdf)-Final Report .pdf format 
-- **Extended Technical Monograph (PDF):** [`sarvam_extended_draft_16p.pdf`](sarvam_extended_draft_16p.pdf) — Complete 16-page extended reference draft with full system derivations and extended proofs.
 - **Official Problem Statement:** [`sarvam_official_mini_ps.pdf`](sarvam_official_mini_ps.pdf) — Official Inter IIT Tech Meet 15.0 Sarvam.ai qualifying document.
 - **Detailed Benchmark Results:** [`RESULTS.md`](RESULTS.md) — Live reproduction logs, SI-SDR metrics across 5 degraded conditions, and segmental ASR evaluations.
 
@@ -18,7 +17,6 @@
 SARVAM/
 ├── report_mini_ps.html                # Official 4-page IEEE/ACL publication report
 ├── sarvam_mini_ps.pdf                 # Strict 4-page submission PDF (1.76 MB)
-├── sarvam_extended_draft_16p.pdf      # Complete 16-page extended monograph
 ├── sarvam_official_mini_ps.pdf        # Official Inter IIT Tech Meet 15.0 Problem Statement
 ├── RESULTS.md                         # Quantitative benchmark logs & SI-SDR results
 ├── requirements.txt                   # Reproducible 1-step Python dependencies
