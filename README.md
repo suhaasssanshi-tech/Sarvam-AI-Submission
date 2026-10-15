@@ -103,10 +103,16 @@ python scripts/generate_degraded_clips.py
 python scripts/eval_part_e.py
 ```
 
-### 3. Run Live Pipeline with Strictly Causal 80 ms Front-End
+### 3. Run Live Pipeline (Any Audio Format -> Clean Audio + Word Timestamps)
 ```powershell
-# End-to-end execution on any Hindi audio clip (with causal front-end)
-python scripts/run_live_interview.py --audio data/audio/clip_1_24k.wav --run_sp_frontend
+# Works out-of-the-box with ANY audio format (.wav, .mp3, .m4a, .flac, .ogg, .aac, .webm):
+python scripts/run_live_interview.py data/audio/clip_1_24k.wav
+
+# Pass any noisy recording or phone audio sample:
+python scripts/run_live_interview.py path/to/sample.mp3
+
+# Provide manual reference transcript (if available):
+python scripts/run_live_interview.py path/to/sample.m4a --manual_hi "नमस्ते मुझे सेक्टर 62 जाना है"
 ```
 
 *(Optional: Start Ollama with `ollama run qwen2.5:7b` to enable local LLM dual translation. If Ollama is offline, the pipeline automatically provides fallback translations.)*
