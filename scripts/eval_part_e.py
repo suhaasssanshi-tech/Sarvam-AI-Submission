@@ -250,9 +250,19 @@ def main():
         print(f"| {r['description']} | {r['input_sisdr']:+.2f} | {r['wiener_sisdr']:+.2f} | {r['delta_wiener']:+.2f} | {r['neural_sisdr']:+.2f} | {r['delta_neural']:+.2f} | **{r['smart_sisdr']:+.2f}** | **{r['delta_smart']:+.2f}** | {r['latency_smart']:.2f} ms |")
     print("=" * 105)
     
-    # Save results to JSON
+    # Save results to JSON in data/part_e_plots/ and results/
+    os.makedirs("results", exist_ok=True)
     with open("data/part_e_plots/part_e_metrics.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
+    with open("results/part_e_metrics.json", "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+
+    # Save Markdown summary in results/
+    with open("results/part_e_summary.md", "w", encoding="utf-8") as f:
+        f.write("# Part E Benchmark Results: Delay-Aligned SI-SDR & Latency\n\n")
+        f.write(header + "\n" + divider + "\n")
+        for r in results:
+            f.write(f"| {r['description']} | {r['input_sisdr']:+.2f} | {r['wiener_sisdr']:+.2f} | {r['delta_wiener']:+.2f} | {r['neural_sisdr']:+.2f} | {r['delta_neural']:+.2f} | **{r['smart_sisdr']:+.2f}** | **{r['delta_smart']:+.2f}** | {r['latency_smart']:.2f} ms |\n")
         
     # -------------------------------------------------------------
     # PROVE THE EXACT FAILURE CASES ("WHERE DENOISING HURTS")

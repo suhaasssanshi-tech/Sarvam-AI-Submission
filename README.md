@@ -21,6 +21,7 @@ SARVAM/
 ├── RESULTS.md                         # Quantitative benchmark logs & SI-SDR results
 ├── requirements.txt                   # Reproducible 1-step Python dependencies
 ├── verify_setup.py                    # Hardware & CUDA verification script
+├── results/                           # Output folder for clean audio, timestamps & JSON reports
 ├── scripts/
 │   ├── causal_frontend.py             # Strictly causal 80 ms audio front-end engine
 │   ├── eval_part_e.py                 # SI-SDR benchmark & figure generation

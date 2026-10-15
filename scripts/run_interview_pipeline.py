@@ -427,14 +427,21 @@ Examples:
         print(f"[ERROR] Audio file not found: {in_path}")
         sys.exit(1)
 
+    # Output directories
+    results_dir = Path("results")
+    results_dir.mkdir(parents=True, exist_ok=True)
+
     std_wav = Path(f"data/audio/{in_path.stem}_24k.wav")
     print(f"Device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
-    print(f"\n=== [1/5] Standardizing Audio -> 24 kHz Mono PCM ({std_wav}) ===")
-    print(f"  Input Format       : {in_path.suffix.upper()} ({in_path.name})")
+    print(f"\n=== [1/5] Standardizing Audio -> 24 kHz Mono PCM ===")
+    print(f"  Input File         : {in_path.name} ({in_path.suffix.upper()})")
     standardize_to_24k_mono(in_path, std_wav)
 
     active_wav = std_wav
     fe_wav = None
+    res_clean_wav = results_dir / f"{in_path.stem}_clean_24k.wav"
+    fe_stats = None
+
     if not args.skip_frontend:
         print(f"\n=== [Part E] Running Strictly Causal 80 ms Audio Front-End ===")
         try:
@@ -443,13 +450,18 @@ Examples:
             from scripts.causal_frontend import process_audio_file_80ms_loop
         fe_wav = Path(f"data/audio/{in_path.stem}_frontend_24k.wav")
         sp_t0 = time.perf_counter()
-        stats = process_audio_file_80ms_loop(str(std_wav), str(fe_wav), mode="smart_gated", device="cuda")
+        fe_stats = process_audio_file_80ms_loop(str(std_wav), str(fe_wav), mode="smart_gated", device="cuda")
         sp_dur = time.perf_counter() - sp_t0
+
+        # Also save directly into results/ folder
+        import shutil
+        shutil.copyfile(fe_wav, res_clean_wav)
+
         print(f"  Front-End Mode     : smart_gated (SmartCausalGate + Silero VAD + DeepFilterNet3)")
-        print(f"  80 ms Frame Latency: {stats['mean_latency_ms']:.2f} ms (p95: {stats['p95_latency_ms']:.2f} ms)")
-        print(f"  Speech Frame Ratio : {stats['speech_frame_ratio']*100:.1f}%")
-        print(f"  Dominant Gate Mode : {stats['dominant_gate_action']}")
-        print(f"  Enhanced Audio File: {fe_wav} (processed in {sp_dur:.2f}s)")
+        print(f"  80 ms Frame Latency: {fe_stats['mean_latency_ms']:.2f} ms (p95: {fe_stats['p95_latency_ms']:.2f} ms)")
+        print(f"  Speech Frame Ratio : {fe_stats['speech_frame_ratio']*100:.1f}%")
+        print(f"  Dominant Gate Mode : {fe_stats['dominant_gate_action']}")
+        print(f"  Clean Audio Saved  : {res_clean_wav} (processed in {sp_dur:.2f}s)")
         active_wav = fe_wav
 
     print("\n=== [2/5] Verbatim Transcription & 7B Dual Translation ===")
@@ -459,11 +471,16 @@ Examples:
 
     print("\n=== [3/5] MMS Forced Alignment + 5ms RMS Boundary Clamping ===")
     duration, hi_words = align_best_mms(active_wav, hi_l1)
-    lbl_path = Path(f"data/alignments/{in_path.stem}_audacity.txt")
-    lbl_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(lbl_path, "w", encoding="utf-8") as f:
+
+    # Save to data/alignments and results/
+    lbl_data = Path(f"data/alignments/{in_path.stem}_audacity.txt")
+    lbl_results = results_dir / f"{in_path.stem}_audacity.txt"
+    lbl_data.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(lbl_results, "w", encoding="utf-8") as f:
         for w in hi_words:
             f.write(f"{w['start']:.3f}\t{w['end']:.3f}\t{w['w']}\n")
+    shutil.copyfile(lbl_results, lbl_data)
 
     print(f"\n  [Level-1 Hindi] : {hi_l1}")
     print(f"  [Literal Eng]   : {en_lit}")
@@ -487,16 +504,66 @@ Examples:
         idx += 1
     print("-" * 78)
     print(f" Total Aligned Words : {len(hi_words)} words across {duration:.2f}s")
-    print(f" Audacity Label File : {lbl_path}")
-    if fe_wav:
-        print(f" Clean Audio Output  : {fe_wav}")
     print("=" * 78)
 
     print("\n=== [4/4] Dynamic Entity, Number & Negation Verification ===")
+    verif_report = {}
     for title, txt, mode in [("LITERAL", en_lit, "literal"), ("FLUENT", en_flu, "fluent")]:
         print(f"\n  --- Verification ({title}) ---")
+        verif_report[title] = {}
         for k, (ok, msg) in run_checker(hi_l1, txt, mode).items():
             print(f"    [{'PASS' if ok else 'FAIL'}] {k:28s} | {msg}")
+            verif_report[title][k] = {"pass": ok, "message": msg}
 
-    print(f"\n[DONE] Total Pipeline Latency on RTX 5060: {time.perf_counter() - t0:.2f}s")
+    total_latency = time.perf_counter() - t0
+
+    # Save comprehensive JSON and Text summary in results/
+    res_json_path = results_dir / f"{in_path.stem}_results.json"
+    res_txt_path = results_dir / f"{in_path.stem}_report.txt"
+
+    payload = {
+        "input_audio": str(in_path),
+        "clean_audio": str(res_clean_wav) if not args.skip_frontend else None,
+        "audacity_labels": str(lbl_results),
+        "duration_seconds": duration,
+        "total_latency_seconds": round(total_latency, 2),
+        "transcription": {
+            "raw_hindi": raw_hi,
+            "hindi_level1": hi_l1,
+            "english_literal": en_lit,
+            "english_fluent": en_flu
+        },
+        "frontend_metrics": fe_stats if fe_stats else "skipped",
+        "word_timestamps": hi_words,
+        "verification": verif_report
+    }
+
+    with open(res_json_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+    with open(res_txt_path, "w", encoding="utf-8") as f:
+        f.write(f"=== SPEECH PROCESSING REPORT: {in_path.name} ===\n\n")
+        f.write(f"Clean Audio File : {res_clean_wav}\n")
+        f.write(f"Audacity Labels  : {lbl_results}\n")
+        f.write(f"Duration         : {duration:.2f} seconds\n")
+        f.write(f"Latency          : {total_latency:.2f} seconds\n\n")
+        f.write(f"[Hindi Level-1]  : {hi_l1}\n")
+        f.write(f"[Literal Eng]    : {en_lit}\n")
+        f.write(f"[Fluent Eng]     : {en_flu}\n\n")
+        f.write("--- WORD TIMESTAMPS ---\n")
+        for i, w in enumerate(hi_words, 1):
+            dur_ms = int(round((w['end'] - w['start']) * 1000))
+            f.write(f"{i:02d}. [{w['start']:.3f}s - {w['end']:.3f}s] ({dur_ms} ms, conf={w['conf']:.2f}) -> {w['w']}\n")
+
+    print("\n" + "=" * 78)
+    print("📁 ALL ARTIFACTS SAVED TO 'results/' FOLDER:")
+    print("=" * 78)
+    if not args.skip_frontend:
+        print(f"  1. Clean Audio Output  : {res_clean_wav}")
+    print(f"  2. Audacity Label File : {lbl_results}")
+    print(f"  3. Structured JSON     : {res_json_path}")
+    print(f"  4. Human Text Report   : {res_txt_path}")
+    print("=" * 78)
+    print(f"\n[DONE] Pipeline Executed Successfully in {total_latency:.2f}s!")
+
 

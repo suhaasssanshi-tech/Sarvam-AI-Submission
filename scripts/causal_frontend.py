@@ -544,12 +544,16 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Strictly Causal 80 ms Audio Front-End (Denoising & VAD)")
     parser.add_argument("--input", "-i", type=str, default=None, help="Input audio file to denoise")
-    parser.add_argument("--output", "-o", type=str, default="clean_audio_24k.wav", help="Output path for denoised audio")
+    parser.add_argument("--output", "-o", type=str, default="results/clean_audio_24k.wav", help="Output path for denoised audio")
     parser.add_argument("--mode", "-m", type=str, default="smart_gated", choices=["smart_gated", "wiener", "neural", "unprocessed"], help="Denoising mode")
     parser.add_argument("--device", type=str, default="cuda", help="Device (cuda or cpu)")
     args = parser.parse_args()
 
     if args.input:
+        import os
+        out_dir = os.path.dirname(args.output)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
         print(f"[*] Processing '{args.input}' via Causal 80ms Front-End (mode={args.mode}, device={args.device})...")
         stats = process_audio_file_80ms_loop(args.input, args.output, mode=args.mode, device=args.device)
         print(f"[+] Denoising Complete! Output saved to: {args.output}")

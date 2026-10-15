@@ -27,3 +27,11 @@ Thumbs.db
 INTERVIEW_GUIDE.md
 sarvam_extended_draft_16p.pdf
 
+# Generated results & runtime outputs (keep folder structure)
+results/*
+!results/.gitkeep
+
+# Live interview testing audio clips
+WhatsApp Audio*
+
+
