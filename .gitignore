@@ -22,3 +22,7 @@ htmlcov/
 *.swo
 .DS_Store
 Thumbs.db
+
+# Internal preparation & interview notes
+INTERVIEW_GUIDE.md
+

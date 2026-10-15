@@ -6,15 +6,13 @@
 
 ---
 
-## 📌 Deliverables & Repository Structure
+## Deliverables & Repository Structure
 
-- **Submission Report (HTML):** [`report_mini_ps.html`](report_mini_ps.html) — Publication-grade, 4-page academic IEEE/ACL 2-column layout with typeset math, inline SVG architecture flowchart, live quantitative tables, and embedded high-resolution figures.
-- **Compiled Submission Report (PDF):** [`sarvam_mini_ps.pdf`](sarvam_mini_ps.pdf) — Exactly 4 pages compiled via headless Microsoft Edge adhering to strict A4 portrait standards.
+- **Submission Report (HTML):** [`report_mini_ps.html`](report_mini_ps.html)- Final Report .html format
+- **Compiled Submission Report (PDF):** [`sarvam_mini_ps.pdf`](sarvam_mini_ps.pdf)-Final Report .pdf format 
 - **Extended Technical Monograph (PDF):** [`sarvam_extended_draft_16p.pdf`](sarvam_extended_draft_16p.pdf) — Complete 16-page extended reference draft with full system derivations and extended proofs.
 - **Official Problem Statement:** [`sarvam_official_mini_ps.pdf`](sarvam_official_mini_ps.pdf) — Official Inter IIT Tech Meet 15.0 Sarvam.ai qualifying document.
 - **Detailed Benchmark Results:** [`RESULTS.md`](RESULTS.md) — Live reproduction logs, SI-SDR metrics across 5 degraded conditions, and segmental ASR evaluations.
-- **Interview & Defense Guide:** [`INTERVIEW_GUIDE.md`](INTERVIEW_GUIDE.md) — Architectural walk-through, latency budgets, protocol rule defenses, and failure mode analysis.
-- **Dataset Strategy Notes:** [`notes_data_collection_strategy.txt`](notes_data_collection_strategy.txt) — Candidate architecture notes for 200-hour conversational code-mixed speech splits.
 
 ```
 SARVAM/
@@ -23,7 +21,6 @@ SARVAM/
 ├── sarvam_extended_draft_16p.pdf      # Complete 16-page extended monograph
 ├── sarvam_official_mini_ps.pdf        # Official Inter IIT Tech Meet 15.0 Problem Statement
 ├── RESULTS.md                         # Quantitative benchmark logs & SI-SDR results
-├── INTERVIEW_GUIDE.md                 # Defense Q&A, latency breakdown & failure analysis
 ├── requirements.txt                   # Reproducible 1-step Python dependencies
 ├── verify_setup.py                    # Hardware & CUDA verification script
 ├── scripts/
@@ -45,7 +42,7 @@ SARVAM/
 
 ---
 
-## 🏗️ System Architecture & Key Components
+## System Architecture & Key Components
 
 ### 1. Strictly Causal 80 ms Front-End (`scripts/causal_frontend.py`)
 Live Hindi speech streams in chunks of **80 ms = 1,920 samples @ 24 kHz (3,840 bytes, `pcm_s16le`)**. In strict adherence to **Rule 6 (Zero Future Lookahead)**:
@@ -63,7 +60,7 @@ Live Hindi speech streams in chunks of **80 ms = 1,920 samples @ 24 kHz (3,840 b
 
 ---
 
-## 📊 Key Quantitative Benchmark Results
+## Key Quantitative Benchmark Results
 
 ### Part E: Delay-Aligned SI-SDR & Runtime Latency Benchmark (`clip_1_24k.wav`)
 
@@ -84,7 +81,7 @@ Live Hindi speech streams in chunks of **80 ms = 1,920 samples @ 24 kHz (3,840 b
 
 ---
 
-## 🚀 Quickstart & Reproduction Commands
+## Quickstart & Reproduction Commands
 
 ### 1. Environment Setup
 ```powershell
@@ -118,6 +115,6 @@ python scripts/run_live_interview.py --audio data/audio/clip_1_24k.wav --run_sp_
 
 ---
 
-## 📜 Authors & Acknowledgements
+## Authors & Acknowledgements
 - **Candidate Submission:** Indian Institute of Technology Patna (`@iitp.ac.in`)
 - **Event:** Inter IIT Tech Meet 15.0 (Sarvam.ai Qualifying Mini Problem Statement)
