@@ -1,0 +1,20 @@
+# Core PyTorch and Audio Processing
+torch>=2.0.0
+torchaudio>=2.0.0
+soundfile>=0.12.0
+scipy>=1.10.0
+numpy>=1.24.0
+
+# Denoising and Voice Activity Detection (Part E)
+deepfilternet>=0.5.6
+silero-vad>=5.1.0
+
+# Evaluation, Plotting and PDF Verification
+matplotlib>=3.7.0
+pypdf>=4.0.0
+
+# Transcription, Translation, Alignment & Normalization (Part D)
+transformers>=4.40.0
+accelerate>=0.28.0
+uroman-python>=1.2.0
+requests>=2.28.0

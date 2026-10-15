@@ -1,4 +1,8 @@
-# Save as: scripts\run_interview_pipeline.py
+#!/usr/bin/env python3
+"""
+scripts/run_interview_pipeline.py - Unified Speech Processing & Interview Pipeline
+Inter IIT Tech Meet 15.0 (Sarvam.ai Qualifying Mini PS)
+"""
 import argparse
 import difflib
 import gc
@@ -17,7 +21,9 @@ import soundfile as sf
 import torch
 import torchaudio
 
-os.environ["HF_HUB_OFFLINE"] = "1"
+# If user hasn't explicitly set HF_HUB_OFFLINE, allow downloading models on clean machines
+if "HF_HUB_OFFLINE" not in os.environ:
+    os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
 sys.stdout.reconfigure(encoding="utf-8")
 torch.set_num_threads(12)  # Tuned for Intel i7-14650HX
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -350,10 +356,21 @@ if __name__ == "__main__":
 
     print(f"Device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
     print(f"\n=== [1/5] Standardizing Audio -> 24 kHz Mono PCM ({std_wav}) ===")
-    subprocess.run([
-        "ffmpeg", "-y", "-loglevel", "error", "-threads", "8", "-i", str(in_path),
-        "-ac", "1", "-ar", "24000", "-sample_fmt", "s16", "-acodec", "pcm_s16le", str(std_wav)
-    ], check=True)
+    try:
+        subprocess.run([
+            "ffmpeg", "-y", "-loglevel", "error", "-threads", "8", "-i", str(in_path),
+            "-ac", "1", "-ar", "24000", "-sample_fmt", "s16", "-acodec", "pcm_s16le", str(std_wav)
+        ], check=True)
+    except Exception as e:
+        # Fallback to soundfile + scipy if ffmpeg is not installed on system
+        audio_data, sr = sf.read(str(in_path), dtype="float32")
+        if audio_data.ndim > 1:
+            audio_data = audio_data.mean(axis=1)
+        if sr != 24000:
+            import scipy.signal as signal
+            num_target = int(round(len(audio_data) * 24000 / sr))
+            audio_data = signal.resample(audio_data, num_target)
+        sf.write(str(std_wav), audio_data.astype(np.float32), 24000, subtype="PCM_16")
 
     active_wav = std_wav
     if args.run_sp_frontend:

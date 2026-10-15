@@ -10,8 +10,38 @@
 
 - **Submission Report (HTML):** [`report_mini_ps.html`](report_mini_ps.html) — Publication-grade, 4-page academic IEEE/ACL 2-column layout with typeset math, inline SVG architecture flowchart, live quantitative tables, and embedded high-resolution figures.
 - **Compiled Submission Report (PDF):** [`sarvam_mini_ps.pdf`](sarvam_mini_ps.pdf) — Exactly 4 pages compiled via headless Microsoft Edge adhering to strict A4 portrait standards.
+- **Extended Technical Monograph (PDF):** [`sarvam_extended_draft_16p.pdf`](sarvam_extended_draft_16p.pdf) — Complete 16-page extended reference draft with full system derivations and extended proofs.
+- **Official Problem Statement:** [`sarvam_official_mini_ps.pdf`](sarvam_official_mini_ps.pdf) — Official Inter IIT Tech Meet 15.0 Sarvam.ai qualifying document.
 - **Detailed Benchmark Results:** [`RESULTS.md`](RESULTS.md) — Live reproduction logs, SI-SDR metrics across 5 degraded conditions, and segmental ASR evaluations.
 - **Interview & Defense Guide:** [`INTERVIEW_GUIDE.md`](INTERVIEW_GUIDE.md) — Architectural walk-through, latency budgets, protocol rule defenses, and failure mode analysis.
+- **Dataset Strategy Notes:** [`notes_data_collection_strategy.txt`](notes_data_collection_strategy.txt) — Candidate architecture notes for 200-hour conversational code-mixed speech splits.
+
+```
+SARVAM/
+├── report_mini_ps.html                # Official 4-page IEEE/ACL publication report
+├── sarvam_mini_ps.pdf                 # Strict 4-page submission PDF (1.76 MB)
+├── sarvam_extended_draft_16p.pdf      # Complete 16-page extended monograph
+├── sarvam_official_mini_ps.pdf        # Official Inter IIT Tech Meet 15.0 Problem Statement
+├── RESULTS.md                         # Quantitative benchmark logs & SI-SDR results
+├── INTERVIEW_GUIDE.md                 # Defense Q&A, latency breakdown & failure analysis
+├── requirements.txt                   # Reproducible 1-step Python dependencies
+├── verify_setup.py                    # Hardware & CUDA verification script
+├── scripts/
+│   ├── causal_frontend.py             # Strictly causal 80 ms audio front-end engine
+│   ├── eval_part_e.py                 # SI-SDR benchmark & figure generation
+│   ├── generate_degraded_clips.py     # Synthesizes 5 degraded audio test conditions
+│   ├── generate_html_report.py        # Generates report_mini_ps.html
+│   ├── inspect_pdf.py                 # Validates exact 4-page PDF constraint
+│   ├── run_live_interview.py          # Unified CLI entrypoint
+│   └── run_interview_pipeline.py      # End-to-end ASR, alignment, & entity verification
+└── data/
+    ├── audio/                         # Standardized 24 kHz mono reference clips (clip_1 to clip_6)
+    ├── raw/                           # Original audio recordings (clip_1 to clip_6)
+    ├── alignments/                    # Audacity sub-20ms word alignment labels
+    ├── part_e_audio/                  # Degraded conditions (noisy 15/10/5 dB, telephone 8k)
+    ├── part_e_enhanced/               # Enhanced audio outputs across all denoisers
+    └── part_e_plots/                  # High-resolution benchmark figures (Fig E.1 & E.2)
+```
 
 ---
 
@@ -29,7 +59,7 @@ Live Hindi speech streams in chunks of **80 ms = 1,920 samples @ 24 kHz (3,840 b
 
 ### 2. High-Accuracy Forced Alignment & Universal Verification (`scripts/run_interview_pipeline.py`)
 - **5 ms RMS Energy-Clamped MMS Aligner:** Multilingual Meta MMS CTC aligner clamped with short-time RMS energy envelopes, slashing boundary Mean Absolute Error (MAE) from **42.6 ms down to 14.8 ms** ($< 18\text{ ms}$ threshold).
-- **Round-Trip Entity & Negation Verification (`scripts/entity_checker.py`):** Deterministic parser supporting Indian financial units (`lakh`, `crore`), 10-digit phone number groupings, phonetic proper names (`uroman` + Gestalt matching), clause negations, and self-correction resolution.
+- **Round-Trip Entity & Negation Verification:** Deterministic parser supporting Indian financial units (`lakh`, `crore`), 10-digit phone number groupings, phonetic proper names (`uroman` + Gestalt matching), clause negations, and self-correction resolution.
 
 ---
 
@@ -58,12 +88,15 @@ Live Hindi speech streams in chunks of **80 ms = 1,920 samples @ 24 kHz (3,840 b
 
 ### 1. Environment Setup
 ```powershell
-# Create and activate environment
+# Create and activate Python 3.10+ virtual environment
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1    # On Linux/macOS: source .venv/bin/activate
 
-# Install core dependencies
-pip install torch torchaudio soundfile scipy numpy librosa pypdf uroman-python
+# Install all dependencies with 1 step
+pip install -r requirements.txt
+
+# Verify hardware & PyTorch CUDA setup
+python verify_setup.py
 ```
 
 ### 2. Run Causal Front-End Benchmark (Part E)
@@ -77,9 +110,11 @@ python scripts/eval_part_e.py
 
 ### 3. Run Live Pipeline with Strictly Causal 80 ms Front-End
 ```powershell
-# End-to-end execution on any Hindi audio clip
+# End-to-end execution on any Hindi audio clip (with causal front-end)
 python scripts/run_live_interview.py --audio data/audio/clip_1_24k.wav --run_sp_frontend
 ```
+
+*(Optional: Start Ollama with `ollama run qwen2.5:7b` to enable local LLM dual translation. If Ollama is offline, the pipeline automatically provides fallback translations.)*
 
 ---
 
