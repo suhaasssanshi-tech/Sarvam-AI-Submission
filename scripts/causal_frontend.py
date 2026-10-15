@@ -541,9 +541,28 @@ def process_audio_file_80ms_loop(input_path: str, output_path: str,
     return stats
 
 if __name__ == "__main__":
-    print("Testing CausalAudioFrontEnd on synthetic 80 ms frame...")
-    fe = CausalAudioFrontEnd(mode="smart_gated", in_sr=24000, target_sr=24000)
-    dummy_frame = np.random.randn(1920).astype(np.float32) * 0.1
-    out, is_sp, diag = fe.process_frame_80ms(dummy_frame)
-    print(f"Processed 80 ms frame in {diag['latency_ms']:.2f} ms | Speech: {is_sp} | Gate: {diag['gate_action']}")
-    print("CausalAudioFrontEnd verification complete!")
+    import argparse
+    parser = argparse.ArgumentParser(description="Strictly Causal 80 ms Audio Front-End (Denoising & VAD)")
+    parser.add_argument("--input", "-i", type=str, default=None, help="Input audio file to denoise")
+    parser.add_argument("--output", "-o", type=str, default="clean_audio_24k.wav", help="Output path for denoised audio")
+    parser.add_argument("--mode", "-m", type=str, default="smart_gated", choices=["smart_gated", "wiener", "neural", "unprocessed"], help="Denoising mode")
+    parser.add_argument("--device", type=str, default="cuda", help="Device (cuda or cpu)")
+    args = parser.parse_args()
+
+    if args.input:
+        print(f"[*] Processing '{args.input}' via Causal 80ms Front-End (mode={args.mode}, device={args.device})...")
+        stats = process_audio_file_80ms_loop(args.input, args.output, mode=args.mode, device=args.device)
+        print(f"[+] Denoising Complete! Output saved to: {args.output}")
+        print(f"    - Mean Latency per 80ms Frame : {stats['mean_latency_ms']:.2f} ms")
+        print(f"    - P95 Latency                 : {stats['p95_latency_ms']:.2f} ms")
+        print(f"    - Active Speech Ratio         : {stats['speech_frame_ratio']*100:.1f}%")
+        print(f"    - Dominant Gate Action        : {stats['dominant_gate_action']}")
+    else:
+        print("Testing CausalAudioFrontEnd on synthetic 80 ms frame...")
+        fe = CausalAudioFrontEnd(mode="smart_gated", in_sr=24000, target_sr=24000)
+        dummy_frame = np.random.randn(1920).astype(np.float32) * 0.1
+        out, is_sp, diag = fe.process_frame_80ms(dummy_frame)
+        print(f"Processed 80 ms frame in {diag['latency_ms']:.2f} ms | Speech: {is_sp} | Gate: {diag['gate_action']}")
+        print("CausalAudioFrontEnd verification complete!")
+        print("\nTip: To denoise any audio file, run:")
+        print("     python scripts/causal_frontend.py --input <path_to_noisy.wav> --output <path_to_clean.wav>")
