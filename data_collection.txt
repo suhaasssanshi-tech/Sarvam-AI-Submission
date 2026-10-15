@@ -1,0 +1,23 @@
+200 hours Split : 
+110 hours :  Real Genuine human speech 
+->real CC-BY-4.0 speech (ai4bharat/IndicVoices conversational/extempore Hindi
+->ai4bharat/indicvoices_r,[https://github.com/AI4Bharat/IndicVoices]
+->ARTPARK-IISc/Vaani Hindi, and
+->ai4bharat/Svarah / Kathbath)
+
+90 hours : Multi voice synthetic Speech  
+-> Sarvam Hindi bulbul:v3 + open zero-shot IndicF5
+
+Transcription and Forced alignment:  
+-Whisper_large_v3 model [https://github.com/openai/whisper/blob/main/model-card.md] -> For transcription from Hindi -> English 
+-NVIDIA IndicConformer ->Again for transcription from Hindi -> English
+
+-MMS_FA -> AI tool by Meta for Forced alignment forced aligner already knows the exact transcript and asks: "At what exact millisecond does each syllable occur, and how confident am I that the speaker pronounced it cleanly?"
+
+Text to speech: [Use some open source Neural TTS engine]
+Meta's MMS TTS 
+
+Fine-tuning : 
+
+How to evaluate the performace : ? 
+-> Use open source S2S referances like Hibiki and Moshi (kyutai-labs/moshi)
